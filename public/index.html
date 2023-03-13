@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-in</title>
+</head>
+<body>
+
+    <h1>Google Sign-in</h1>
+    <hr>
+
+    <div id="g_id_onload"
+         data-client_id="136457339668-3556gcbf86cd423jhfskr663l7m8l1qe.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+
+    <br>
+
+    <button id="google_signout"> 
+        Signout
+    </button>
+
+      
+    <script src="https://accounts.google.com/gsi/client" async defer></script> <!-- google authentication -->
+
+    <script>
+        function handleCredentialResponse(response) {
+
+            //const responsePayload = response.credential;
+
+
+           const body = {id_token : response.credential};
+
+           let url = ( window.location.hostname.includes('localhost') )
+                        ? 'http://localhost:8080/api/auth/google'
+                        : 'https://restserver-node-gg.herokuapp.com/api/auth/google';
+
+           fetch( url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify(body)
+           })
+            .then( resp => resp.json()) //readableString, lo paso a json
+            .then( data => {
+                console.log(data);  
+
+                localStorage.setItem('email', data.usuario.correo);
+            })
+            .catch(console.warn);
+            
+        }
+
+        //Boton logout
+        const button = document.getElementById('google_signout');
+        button.onclick = () => {
+
+            //console.log(google.accounts.id);
+
+            google.accounts.id.disableAutoSelect();
+
+            // 2. localStorage revoke
+            google.accounts.id.revoke( localStorage.getItem('email') , done => {
+
+                localStorage.clear(); 
+                location.reload();
+            })
+        }
+
+
+    </script>
+      
+
+    
+</body>
+</html>
